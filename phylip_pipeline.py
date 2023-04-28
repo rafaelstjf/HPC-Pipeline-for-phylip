@@ -15,7 +15,7 @@ from apps import *
 def GenerateSettings(params):
     name = "HPC-Phylip-Pipeline"
     interval = 30
-    monitor = params['monitor']
+    monitor = False
     parsl.set_file_logger(os.path.join(params['dir'], 'log_script.output'))
     logging.info('Configuring Parsl Workflow Infrastructure')
     env_str = params['environment_variables']

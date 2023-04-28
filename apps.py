@@ -7,7 +7,7 @@ def Mafft(params, inputs = [], outputs = [], stderr=parsl.AUTO_LOGNAME, stdout=p
     import os
     seq_file = os.path.join(params["dir"], params["input"])
     align_file = os.path.join(params["dir"], "alignment.phy")
-    return f"mafft --auto --phylipout --reorder \"{seq_file}\" > \"{align_file}\""
+    return f"{params['mafft_bin']} --auto --phylipout --reorder \"{seq_file}\" > \"{align_file}\""
 
 @python_app
 def CreateFolders(params, inputs = [], outputs = [], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
@@ -39,7 +39,7 @@ def CreateFolders(params, inputs = [], outputs = [], stderr=parsl.AUTO_LOGNAME, 
 def SeqBoot(params, path, seed, inputs = [], outputs = []):
     import os
     os.system(f"printf \"{os.path.join(params['dir'], 'alignment.phy')}\nR\n1\nY\n{seed}\" > {os.path.join(path, 'input_seq.txt')}")
-    return f"cd {path};phylip seqboot < {os.path.join(path, 'input_seq.txt')}"
+    return f"cd {path};{params['seqboot_bin']} < {os.path.join(path, 'input_seq.txt')}"
 
 @python_app
 def CreateBootstrap(params, inputs = [], outputs = [], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
@@ -59,7 +59,7 @@ def CreateBootstrap(params, inputs = [], outputs = [], stderr=parsl.AUTO_LOGNAME
 def DnaDist(params, path, inputs = [], outputs = [], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
     os.system(f"printf \"{os.path.join(path, 'alignment.phy')}\nY\" > {os.path.join(path, 'input.txt')}")
-    return f"cd {path};phylip dnadist < {os.path.join(path, 'input.txt')}"
+    return f"cd {path};{params['dnadist_bin']} < {os.path.join(path, 'input.txt')}"
 
 @python_app
 def Rename(params, path, old_name, new_name, inputs = [], outputs = [], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
@@ -72,7 +72,7 @@ def CreateTree(params, path, inputs = [], outputs = [], stderr=parsl.AUTO_LOGNAM
     import os
     if params["method"] == "NJ":
         os.system(f"printf \"{os.path.join(path, 'dna_dist.data')}\n123\nY\" > {os.path.join(path, 'input_tree.txt')}")
-        return f"cd {path};phylip neighbor < input_tree.txt"
+        return f"cd {path};{params['neighbor_bin']} < input_tree.txt"
     return
 
 @python_app
@@ -94,4 +94,4 @@ def ConcatenateBSTrees(params, inputs = [], outputs = [], stderr=parsl.AUTO_LOGN
 def ConsenseTree(params, inputs = [], outputs = [], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
     os.system(f"printf \"{os.path.join(params['dir'], 'bstreeslist.newick')}\nY\" > {os.path.join(params['dir'], 'input_consense.txt')}")
-    return f"cd {params['dir']};phylip consense < input_consense.txt"
+    return f"cd {params['dir']};{params['consense_bin']} < input_consense.txt"
