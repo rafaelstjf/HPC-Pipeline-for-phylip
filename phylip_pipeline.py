@@ -58,7 +58,7 @@ def GenerateSettings(params):
                 HighThroughputExecutor(
                     worker_debug=False,
                     cores_per_worker=1,
-                    max_workers=params['num_cores']
+                    max_workers=params['num_cores'],
                     provider=LocalProvider(
                         channel=LocalChannel(),
                         init_blocks=1,
