@@ -19,7 +19,7 @@ def GenerateSettings(params):
     parsl.set_file_logger(os.path.join(params['dir'], 'log_script.output'))
     logging.info('Configuring Parsl Workflow Infrastructure')
     env_str = params['environment_variables']
-    env_str += f';export PYTHONPATH=$PYTHONPATH:{params["dir"]}'
+    env_str += f';export PYTHONPATH=$PYTHONPATH:{os.getcwd()}'
     logging.info(f'Task Environment {env_str}')
     mon_hub = parsl.monitoring.monitoring.MonitoringHub(
         workflow_name=name,

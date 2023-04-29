@@ -1,5 +1,5 @@
 {
-    "dir": "./example/DENV_1",
+    "dir": "/scratch/pcmrnbio2/rafael.terra/HPC-Pipeline-for-phylip/example/DENV_1",
     "input": "sequencias.fasta",
     "bootstrap": 1000,
     "monitor": "False",
