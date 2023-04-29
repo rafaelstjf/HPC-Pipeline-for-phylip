@@ -62,6 +62,7 @@ def GenerateSettings(params):
                     provider=LocalProvider(
                         channel=LocalChannel(),
                         init_blocks=1,
+                        worker_init=f'export PYTHONPATH=$PYTHONPATH:{os.getcwd()}',
                         max_blocks=1,
                     ),
                 )
@@ -97,7 +98,9 @@ def main(params):
         r_trees.append(r_ren3)
     r_conc = ConcatenateBSTrees(params, inputs=r_trees)
     r_consense = ConsenseTree(params, inputs=[r_conc])
-    return r_consense.result()
+    r_ren4 = Rename(params, params['dir'], "outfile", "con_tree.log", inputs=[r_consense])
+    r_ren5 = Rename(params, params['dir'], "outtree", "con_tree.newick", inputs=[r_ren4])
+    return r_ren5.result()
 
 
 if __name__ == "__main__":

@@ -58,7 +58,15 @@ def CreateBootstrap(params, inputs = [], outputs = [], stderr=parsl.AUTO_LOGNAME
 @bash_app
 def DnaDist(params, path, inputs = [], outputs = [], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
-    os.system(f"printf \"{os.path.join(path, 'alignment.phy')}\nY\" > {os.path.join(path, 'input.txt')}")
+    distance = ""
+    if params['distance'].lower() == "jukes-cantor":
+        distance = "D\nD\n"
+    elif params['distance'].lower() == "kimura":
+        distance = "D\n"
+    elif params['distance'].lower() == 'logdet':
+        distance = "D\nD\nD\n"
+
+    os.system(f"printf \"{os.path.join(path, 'alignment.phy')}\n{distance}Y\" > {os.path.join(path, 'input.txt')}")
     return f"cd {path};{params['dnadist_bin']} < {os.path.join(path, 'input.txt')}"
 
 @python_app
@@ -93,5 +101,8 @@ def ConcatenateBSTrees(params, inputs = [], outputs = [], stderr=parsl.AUTO_LOGN
 @bash_app
 def ConsenseTree(params, inputs = [], outputs = [], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
-    os.system(f"printf \"{os.path.join(params['dir'], 'bstreeslist.newick')}\nY\" > {os.path.join(params['dir'], 'input_consense.txt')}")
+    outgroup = ""
+    if params.get("ougroup") is not None:
+        outgroup = f"O\n{params['outgroup']}\n"
+    os.system(f"printf \"{os.path.join(params['dir'], 'bstreeslist.newick')}\n{outgroup}Y\" > {os.path.join(params['dir'], 'input_consense.txt')}")
     return f"cd {params['dir']};{params['consense_bin']} < input_consense.txt"
