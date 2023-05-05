@@ -7,7 +7,7 @@ def Mafft(params, inputs = [], outputs = [], stderr=parsl.AUTO_LOGNAME, stdout=p
     import os
     seq_file = os.path.join(params["dir"], params["input"])
     align_file = os.path.join(params["dir"], "alignment.phy")
-    return f"{params['mafft_bin']} --auto --phylipout --reorder \"{seq_file}\" > \"{align_file}\""
+    return f"{params['mafft_bin']} --auto --thread -1 --phylipout --reorder \"{seq_file}\" > \"{align_file}\""
 
 @python_app
 def CreateFolders(params, inputs = [], outputs = [], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
@@ -71,7 +71,10 @@ def DnaDist(params, path, inputs = [], outputs = [], stderr=parsl.AUTO_LOGNAME, 
 
 @python_app
 def Rename(params, path, old_name, new_name, inputs = [], outputs = [], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
-    import os
+    import os, pathlib
+
+    if pathlib.Path(os.path.join(path, new_name)).is_file():
+        os.remove(os.path.join(path, new_name))
     os.rename(os.path.join(path, old_name), os.path.join(path, new_name))
     return
 
@@ -81,6 +84,9 @@ def CreateTree(params, path, inputs = [], outputs = [], stderr=parsl.AUTO_LOGNAM
     if params["method"] == "NJ":
         os.system(f"printf \"{os.path.join(path, 'dna_dist.data')}\n123\nY\" > {os.path.join(path, 'input_tree.txt')}")
         return f"cd {path};{params['neighbor_bin']} < input_tree.txt"
+    elif params["method"] == "MP":
+        os.system(f"printf \"{os.path.join(path, 'alignment.phy')}\nV\n1\nY\" > {os.path.join(path, 'input_tree.txt')}")
+        return f"cd {path};{params['pars_bin']} < input_tree.txt"
     return
 
 @python_app
@@ -101,8 +107,19 @@ def ConcatenateBSTrees(params, inputs = [], outputs = [], stderr=parsl.AUTO_LOGN
 @bash_app
 def ConsenseTree(params, inputs = [], outputs = [], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
-    outgroup = ""
-    if params.get("ougroup") is not None:
-        outgroup = f"O\n{params['outgroup']}\n"
-    os.system(f"printf \"{os.path.join(params['dir'], 'bstreeslist.newick')}\n{outgroup}Y\" > {os.path.join(params['dir'], 'input_consense.txt')}")
+    os.system(f"printf \"{os.path.join(params['dir'], 'bstreeslist.newick')}\nY\" > {os.path.join(params['dir'], 'input_consense.txt')}")
     return f"cd {params['dir']};{params['consense_bin']} < input_consense.txt"
+
+@python_app
+def AssignBSvalues(params, inputs = [], outputs = [], stderr = parsl.AUTO_LOGNAME, stdout = parsl.AUTO_LOGNAME):
+    import os
+    from Bio import Phylo
+    from Bio.Phylo import Consensus
+    work_dir = params['dir']
+    bs_trees = Phylo.parse(os.path.join(work_dir, "bstreeslist.newick"), "newick")
+    con_tree = Phylo.read(os.path.join(work_dir, "con_tree.newick"), "newick")
+    tree = Consensus.get_support(con_tree, bs_trees, len_trees = params["bootstrap"])
+    tree.root_with_outgroup(params["outgroup"], outgroup_branch_length=100) 
+    rooted_consense_tree = os.path.join(params["dir"], "rooted_consense_tree.newick")
+    Phylo.write(tree, rooted_consense_tree, "newick")
+    return

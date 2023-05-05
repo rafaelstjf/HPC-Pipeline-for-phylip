@@ -88,10 +88,13 @@ def main(params):
         r_boot = SeqBoot(params, path, seed, inputs=[r_folders])
         r_ren0 = Rename(params, path, "outfile",
                         "alignment.phy", inputs=[r_boot])
-        r_dnadist = DnaDist(params, path, inputs=[r_ren0])
-        r_ren1 = Rename(params, path, "outfile",
+        if params["method"] == "NJ":
+            r_dnadist = DnaDist(params, path, inputs=[r_ren0])
+            r_ren1 = Rename(params, path, "outfile",
                         "dna_dist.data", inputs=[r_dnadist])
-        r_tree = CreateTree(params, path, inputs=[r_ren1])
+            r_tree = CreateTree(params, path, inputs=[r_ren1])
+        elif params["method"] == "MP":
+            r_tree = CreateTree(params, path, inputs=[r_ren0])
         r_ren2 = Rename(params, path, "outtree",
                         "bstree.newick", inputs=[r_tree])
         r_ren3 = Rename(params, path, "outfile", "tree.log", inputs=[r_ren2])
@@ -100,7 +103,8 @@ def main(params):
     r_consense = ConsenseTree(params, inputs=[r_conc])
     r_ren4 = Rename(params, params['dir'], "outfile", "con_tree.log", inputs=[r_consense])
     r_ren5 = Rename(params, params['dir'], "outtree", "con_tree.newick", inputs=[r_ren4])
-    return r_ren5.result()
+    r_root = AssignBSvalues(params, inputs = [r_ren5])
+    return r_root.result()
 
 
 if __name__ == "__main__":
