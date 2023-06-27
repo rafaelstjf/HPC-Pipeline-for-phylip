@@ -75,7 +75,10 @@ def GenerateSettings(params):
 
 def main(params):
     parsl.load(GenerateSettings(params))
-    r_mafft = Mafft(params)
+    if params["align"] != False:
+        r_mafft = Mafft(params)
+    else:
+        r_mafft = None
     r_folders = CreateFolders(params, inputs=[r_mafft])
     r_trees = list()
     for i in range(1, params["bootstrap"] + 1):

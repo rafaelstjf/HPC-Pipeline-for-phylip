@@ -1,19 +1,21 @@
 {
-    "dir": "/mnt/d/Users/rafae/Documents/GitHub/HPC-Pipeline-for-phylip/example/DENV_1_SA",
+    "dir": "/mnt/d/Users/rafae/Documents/GitHub/HPC-Pipeline-for-phylip/example/full",
+    "align": false,
     "input": "sequencias.fasta",
     "bootstrap": 1000,
     "distance": "F84",
-    "monitor": "False",
-    "outgroup": "MH882548.1",
-    "method": "NJ",
+    "monitor": false,
+    "outgroup": "Euglenavir",
+    "method": "MP",
     "environment_kind": "local",
     "environment_variables": "module load mafft/7.4;module load phylip/3.6;module unload python/2.7;module load python/3.8.2",
-    "num_cores": 24,
+    "num_cores": 4,
     "num_blocks": 1,
     "mafft_bin": "mafft",
     "seqboot_bin": "phylip seqboot",
     "dnadist_bin": "phylip dnadist",
     "neighbor_bin": "phylip neighbor",
+    "pars_bin": "phylip dnapars",
     "consense_bin": "phylip consense"
 
 }
