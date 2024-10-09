@@ -38,7 +38,10 @@ def CreateFolders(params, inputs = [], outputs = [], stderr=parsl.AUTO_LOGNAME, 
 @bash_app
 def SeqBoot(params, path, seed, inputs = [], outputs = []):
     import os
-    os.system(f"printf \"{os.path.join(params['dir'], 'alignment.phy')}\nR\n1\nY\n{seed}\" > {os.path.join(path, 'input_seq.txt')}")
+    if params["align"] == True:
+        os.system(f"printf \"{os.path.join(params['dir'], 'alignment.phy')}\nR\n1\nY\n{seed}\" > {os.path.join(path, 'input_seq.txt')}")
+    else:
+        os.system(f"printf \"{os.path.join(params['dir'], params['input'])}\nR\n1\nY\n{seed}\" > {os.path.join(path, 'input_seq.txt')}")
     return f"cd {path};{params['seqboot_bin']} < {os.path.join(path, 'input_seq.txt')}"
 
 @python_app
@@ -46,7 +49,10 @@ def CreateBootstrap(params, inputs = [], outputs = [], stderr=parsl.AUTO_LOGNAME
     import os
     from Bio import Phylo, AlignIO
     from Bio.Phylo.Consensus import bootstrap
-    msa = AlignIO.read(os.path.join(params['dir'], "alignment.phy"), "phylip")
+    if params["align"] == True:
+        msa = AlignIO.read(os.path.join(params['dir'], "alignment.phy"), "phylip")
+    else:
+        msa = AlignIO.read(os.path.join(params['dir'], params['input']), "phylip")
     samples = bootstrap(msa, params['bootstrap'])
     i = 1
     for s in list(samples):
@@ -119,7 +125,8 @@ def AssignBSvalues(params, inputs = [], outputs = [], stderr = parsl.AUTO_LOGNAM
     bs_trees = Phylo.parse(os.path.join(work_dir, "bstreeslist.newick"), "newick")
     con_tree = Phylo.read(os.path.join(work_dir, "con_tree.newick"), "newick")
     tree = Consensus.get_support(con_tree, bs_trees, len_trees = params["bootstrap"])
-    tree.root_with_outgroup(params["outgroup"], outgroup_branch_length=100) 
+    if len(params["outgroup"]) > 0:
+        tree.root_with_outgroup(params["outgroup"], outgroup_branch_length=100) 
     rooted_consense_tree = os.path.join(params["dir"], "rooted_consense_tree.newick")
     Phylo.write(tree, rooted_consense_tree, "newick")
     return
